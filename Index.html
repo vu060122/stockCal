@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歲月靜好 | 股票損益試算</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: #f7f5f0; /* 米紙色 */
+            color: #5e5b52; /* 墨灰 */
+        }
+        .wenqing-card {
+            background-color: #ffffff;
+            box-shadow: 0 4px 20px rgba(163, 158, 147, 0.15);
+            border: 1px solid #efece5;
+        }
+        .wenqing-input {
+            border-bottom: 1px solid #d1cec6;
+            transition: all 0.3s ease;
+            font-family: 'Lato', sans-serif; /* 數字用無襯線體較清楚 */
+        }
+        .wenqing-input:focus {
+            border-bottom: 1px solid #8c8678;
+            outline: none;
+        }
+        /* Toggle Switch Custom Style */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #8fa39a; /* 莫蘭迪綠 */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #8fa39a;
+        }
+        
+        .result-positive {
+            color: #b86e68; /* 磚紅 - 獲利 */
+        }
+        .result-negative {
+            color: #7a8b85; /* 苔綠 - 虧損 */
+        }
+        
+        /* Custom Scrollbar for sleek look */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dcd9d0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="wenqing-card w-full max-w-md rounded-lg p-8 relative overflow-hidden">
+        <!-- 裝飾背景文字 -->
+        <div class="absolute top-[-20px] right-[-20px] text-[120px] opacity-5 font-serif select-none pointer-events-none text-[#8c8678]">
+            損益
+        </div>
+
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-2xl font-semibold tracking-widest text-[#4a4740] mb-2">投資 · 札記</h1>
+            <p class="text-xs text-[#9c9890] tracking-wider uppercase">Stock Calculator</p>
+        </header>
+
+        <!-- Mode Switcher -->
+        <div class="flex justify-center mb-10">
+            <div class="relative inline-block w-48 select-none bg-[#f0ede6] rounded-full p-1 flex">
+                <button onclick="setMode('normal')" id="btn-normal" class="w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 shadow-sm bg-white text-[#5e5b52]">一般交易</button>
+                <button onclick="setMode('daytrade')" id="btn-daytrade" class="w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 text-[#9c9890]">當沖交易</button>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="space-y-8">
+            <div class="grid grid-cols-2 gap-8">
+                <!-- Buy Price -->
+                <div class="relative">
+                    <input type="number" id="buyPrice" placeholder=" " class="wenqing-input w-full py-2 bg-transparent text-xl text-center text-[#5e5b52]" oninput="calculate()">
+                    <label class="absolute top-[-20px] left-0 w-full text-center text-xs text-[#9c9890] tracking-widest">買入價格</label>
+                </div>
+                <!-- Sell Price -->
+                <div class="relative">
+                    <input type="number" id="sellPrice" placeholder=" " class="wenqing-input w-full py-2 bg-transparent text-xl text-center text-[#5e5b52]" oninput="calculate()">
+                    <label class="absolute top-[-20px] left-0 w-full text-center text-xs text-[#9c9890] tracking-widest">賣出價格</label>
+                </div>
+            </div>
+
+            <!-- Default Settings (Subtle) -->
+            <div class="text-center">
+                <p class="text-[10px] text-[#b3b0a6] tracking-wider">
+                    預設：1000股 (一張) · 電子下單 3.5 折
+                    <span id="tax-info" class="ml-1">· 稅率 0.3%</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <hr class="border-[#efece5] my-8">
+
+        <!-- Result Section -->
+        <div class="text-center space-y-2">
+            <p class="text-xs text-[#9c9890] tracking-widest mb-1">預估損益</p>
+            <div id="netProfit" class="text-4xl font-serif font-medium text-[#ccc] transition-colors duration-500">
+                NT$ 0
+            </div>
+            <div id="roi" class="text-sm text-[#9c9890] mt-1 h-5">
+                報酬率 0.00%
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="mt-8 bg-[#fbfaf8] rounded p-4 text-xs text-[#8c8678] space-y-2 border border-[#f0ede6]">
+            <div class="flex justify-between">
+                <span>買入手續費</span>
+                <span id="buyFee">0</span>
+            </div>
+            <div class="flex justify-between">
+                <span>賣出手續費</span>
+                <span id="sellFee">0</span>
+            </div>
+            <div class="flex justify-between">
+                <span>證券交易稅</span>
+                <span id="tax">0</span>
+            </div>
+            <div class="flex justify-between pt-2 border-t border-[#eee]">
+                <span>總成本</span>
+                <span id="totalCost">0</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Configuration
+        const SHARES = 1000; // 1 Sheet
+        const FEE_RATE = 0.001425;
+        const DISCOUNT = 0.35; // 3.5 Zhe
+        const MIN_FEE = 20;
+        
+        let isDayTrading = false;
+
+        function setMode(mode) {
+            isDayTrading = (mode === 'daytrade');
+            
+            const btnNormal = document.getElementById('btn-normal');
+            const btnDayTrade = document.getElementById('btn-daytrade');
+            const taxInfo = document.getElementById('tax-info');
+
+            if (isDayTrading) {
+                btnNormal.className = "w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 text-[#9c9890]";
+                btnDayTrade.className = "w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 shadow-sm bg-white text-[#5e5b52]";
+                taxInfo.textContent = "· 稅率 0.15%";
+            } else {
+                btnNormal.className = "w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 shadow-sm bg-white text-[#5e5b52]";
+                btnDayTrade.className = "w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 text-[#9c9890]";
+                taxInfo.textContent = "· 稅率 0.3%";
+            }
+            calculate();
+        }
+
+        function calculateFee(price) {
+            if (!price) return 0;
+            // Formula: Price * Shares * Rate * Discount
+            // Round down to integer
+            let rawFee = Math.floor(price * SHARES * FEE_RATE * DISCOUNT);
+            // Minimum fee check: 20 TWD
+            return Math.max(MIN_FEE, rawFee);
+        }
+
+        function calculate() {
+            const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+            
+            const netProfitEl = document.getElementById('netProfit');
+            const roiEl = document.getElementById('roi');
+            const buyFeeEl = document.getElementById('buyFee');
+            const sellFeeEl = document.getElementById('sellFee');
+            const taxEl = document.getElementById('tax');
+            const totalCostEl = document.getElementById('totalCost');
+
+            if (!buyPrice || !sellPrice) {
+                // Reset to neutral state if inputs are incomplete
+                netProfitEl.textContent = "NT$ 0";
+                netProfitEl.className = "text-4xl font-serif font-medium text-[#ccc]";
+                roiEl.textContent = "報酬率 0.00%";
+                buyFeeEl.textContent = "0";
+                sellFeeEl.textContent = "0";
+                taxEl.textContent = "0";
+                totalCostEl.textContent = "0";
+                return;
+            }
+
+            // 1. Calculate Fees
+            const buyFee = calculateFee(buyPrice);
+            const sellFee = calculateFee(sellPrice);
+
+            // 2. Calculate Tax
+            // Non-day-trade: 0.003, Day-trade: 0.0015
+            const taxRate = isDayTrading ? 0.0015 : 0.003;
+            // Tax is based on Sell Amount, floor integer
+            const tax = Math.floor(sellPrice * SHARES * taxRate);
+
+            // 3. Totals
+            const buyAmount = buyPrice * SHARES;
+            const sellAmount = sellPrice * SHARES;
+
+            const totalCost = buyAmount + buyFee; // Cost = Stock cost + Buy Fee
+            // Note: Some define cost differently for ROI, but cash-out calculation:
+            // Net Profit = (Sell Amount - Sell Fee - Tax) - (Buy Amount + Buy Fee)
+            
+            const totalIncome = sellAmount - sellFee - tax;
+            const netProfit = totalIncome - totalCost;
+
+            // 4. ROI
+            const roi = (netProfit / totalCost) * 100;
+
+            // Update UI
+            buyFeeEl.textContent = buyFee.toLocaleString();
+            sellFeeEl.textContent = sellFee.toLocaleString();
+            taxEl.textContent = tax.toLocaleString();
+            totalCostEl.textContent = totalCost.toLocaleString();
+
+            const prefix = netProfit > 0 ? "+" : "";
+            netProfitEl.textContent = `${prefix}NT$ ${netProfit.toLocaleString()}`;
+            roiEl.textContent = `報酬率 ${prefix}${roi.toFixed(2)}%`;
+
+            // Color Coding (Taiwan Style: Red is Up/Profit, Green is Down/Loss)
+            // Using muted Wenqing colors
+            if (netProfit > 0) {
+                netProfitEl.className = "text-4xl font-serif font-medium result-positive";
+                roiEl.className = "text-sm mt-1 h-5 result-positive";
+            } else if (netProfit < 0) {
+                netProfitEl.className = "text-4xl font-serif font-medium result-negative";
+                roiEl.className = "text-sm mt-1 h-5 result-negative";
+            } else {
+                netProfitEl.className = "text-4xl font-serif font-medium text-[#5e5b52]";
+                roiEl.className = "text-sm mt-1 h-5 text-[#9c9890]";
+            }
+        }
+    </script>
+</body>
+</html>
