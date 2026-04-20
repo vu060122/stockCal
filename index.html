@@ -1,247 +1,281 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>股票損益試算</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- 加入手機桌面的設定與圖示 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="交易精算">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23F4F2EE'/%3E%3Cpath d='M130 360 L230 240 L310 290 L400 160' fill='none' stroke='%23AB7371' stroke-width='40' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='400' cy='160' r='28' fill='%23AB7371'/%3E%3Ccircle cx='130' cy='360' r='28' fill='%23AB7371'/%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23F4F2EE'/%3E%3Cpath d='M130 360 L230 240 L310 290 L400 160' fill='none' stroke='%23AB7371' stroke-width='40' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='400' cy='160' r='28' fill='%23AB7371'/%3E%3Ccircle cx='130' cy='360' r='28' fill='%23AB7371'/%3E%3C/svg%3E">
+    
+    <title>交易・精算 | 股票損益試算</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #F4F2EE; /* 柔和的米色背景 */
+            -webkit-tap-highlight-color: transparent;
+        }
+        .font-serif-tc {
             font-family: 'Noto Serif TC', serif;
-            background-color: #f7f5f0; /* 米紙色 */
-            color: #5e5b52; /* 墨灰 */
         }
-        .wenqing-card {
-            background-color: #ffffff;
-            box-shadow: 0 4px 20px rgba(163, 158, 147, 0.15);
-            border: 1px solid #efece5;
+        /* 隱藏 input number 的上下箭頭 */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
         }
-        .wenqing-input {
-            border-bottom: 1px solid #d1cec6;
-            transition: all 0.3s ease;
-            font-family: 'Lato', sans-serif; /* 數字用無襯線體較清楚 */
+        input[type=number] {
+            -moz-appearance: textfield;
         }
-        .wenqing-input:focus {
-            border-bottom: 1px solid #8c8678;
-            outline: none;
-        }
-        /* Toggle Switch Custom Style */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #8fa39a; /* 莫蘭迪綠 */
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #8fa39a;
-        }
-        
-        .result-positive {
-            color: #b86e68; /* 磚紅 - 獲利 */
-        }
-        .result-negative {
-            color: #7a8b85; /* 苔綠 - 虧損 */
-        }
-        
-        /* Custom Scrollbar for sleek look */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #dcd9d0;
-            border-radius: 3px;
+        /* 自訂輸入框選取時的底部邊框顏色 */
+        .price-input:focus {
+            border-bottom-color: #A86A65;
         }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="wenqing-card w-full max-w-md rounded-lg p-8 relative overflow-hidden">
-        <!-- 裝飾背景文字 -->
-        <div class="absolute top-[-20px] right-[-20px] text-[120px] opacity-5 font-serif select-none pointer-events-none text-[#8c8678]">
+    <!-- 主卡片 -->
+    <div class="bg-white w-full max-w-[380px] rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.04)] p-8 relative overflow-hidden">
+        
+        <!-- 背景浮水印 -->
+        <div class="absolute top-10 right-0 transform translate-x-10 text-[120px] font-serif-tc text-[#FAFAFA] opacity-80 z-0 pointer-events-none select-none tracking-widest">
             損益
         </div>
 
-        <!-- Header -->
-        <header class="text-center mb-10">
-            <h1 class="text-2xl font-semibold tracking-widest text-[#4a4740] mb-2">投資 · 札記</h1>
-            <p class="text-xs text-[#9c9890] tracking-wider uppercase">Stock Calculator</p>
-        </header>
+        <div class="relative z-10 flex flex-col items-center">
+            <!-- 標題 -->
+            <h1 class="font-serif-tc text-[26px] text-[#423C36] tracking-[0.15em] mb-1">交易・精算</h1>
+            <h2 class="text-[11px] text-[#C1BDB8] uppercase tracking-[0.25em] mb-6">Stock Calculator</h2>
 
-        <!-- Mode Switcher -->
-        <div class="flex justify-center mb-10">
-            <div class="relative inline-block w-48 select-none bg-[#f0ede6] rounded-full p-1 flex">
-                <button onclick="setMode('normal')" id="btn-normal" class="w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 shadow-sm bg-white text-[#5e5b52]">一般交易</button>
-                <button onclick="setMode('daytrade')" id="btn-daytrade" class="w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 text-[#9c9890]">當沖交易</button>
+            <!-- 交易模式切換 -->
+            <div class="bg-[#F2EFEA] rounded-full p-[6px] flex w-[240px] mb-8 relative">
+                <!-- 滑動背景 (透過 JS 控制) -->
+                <div id="toggle-bg" class="absolute top-[6px] left-[6px] w-[calc(50%-6px)] h-[calc(100%-12px)] bg-white rounded-full shadow-sm transition-transform duration-300 ease-in-out"></div>
+                
+                <button id="btn-regular" class="flex-1 text-[13px] py-2 relative z-10 font-medium text-[#6B635A] transition-colors" onclick="setTradeMode('regular')">
+                    一般交易
+                </button>
+                <button id="btn-daytrade" class="flex-1 text-[13px] py-2 relative z-10 font-medium text-[#AEA8A3] transition-colors" onclick="setTradeMode('daytrade')">
+                    當沖交易
+                </button>
             </div>
-        </div>
 
-        <!-- Input Section -->
-        <div class="space-y-8">
-            <div class="grid grid-cols-2 gap-8">
-                <!-- Buy Price -->
-                <div class="relative">
-                    <input type="number" id="buyPrice" placeholder=" " class="wenqing-input w-full py-2 bg-transparent text-xl text-center text-[#5e5b52]" oninput="calculate()">
-                    <label class="absolute top-[-20px] left-0 w-full text-center text-xs text-[#9c9890] tracking-widest">買入價格</label>
+            <!-- 輸入區塊 -->
+            <div class="w-full flex flex-col gap-6 mb-6">
+                <!-- 交易張數 -->
+                <div class="text-center">
+                    <label class="block text-[13px] text-[#A6A09A] mb-3">交易張數</label>
+                    <div class="flex items-end justify-center gap-1">
+                        <input type="number" id="input-lots" value="1" min="1" class="price-input w-20 text-center text-[28px] text-[#423C36] font-medium bg-transparent border-b border-[#EBE7E1] pb-1 focus:outline-none transition-colors" placeholder="1">
+                        <span class="text-[13px] text-[#A6A09A] mb-2">張</span>
+                    </div>
                 </div>
-                <!-- Sell Price -->
-                <div class="relative">
-                    <input type="number" id="sellPrice" placeholder=" " class="wenqing-input w-full py-2 bg-transparent text-xl text-center text-[#5e5b52]" oninput="calculate()">
-                    <label class="absolute top-[-20px] left-0 w-full text-center text-xs text-[#9c9890] tracking-widest">賣出價格</label>
+
+                <div class="w-full flex justify-between gap-6">
+                    <!-- 買入 -->
+                    <div class="flex-1 text-center">
+                        <label class="block text-[13px] text-[#A6A09A] mb-3">買入價格</label>
+                        <input type="number" id="input-buy" value="" class="price-input w-full text-center text-[28px] text-[#423C36] font-medium bg-transparent border-b border-[#EBE7E1] pb-2 focus:outline-none transition-colors" placeholder="0">
+                    </div>
+                    <!-- 賣出 -->
+                    <div class="flex-1 text-center">
+                        <label class="block text-[13px] text-[#A6A09A] mb-3">賣出價格</label>
+                        <input type="number" id="input-sell" value="" class="price-input w-full text-center text-[28px] text-[#423C36] font-medium bg-transparent border-b border-[#EBE7E1] pb-2 focus:outline-none transition-colors" placeholder="0">
+                    </div>
                 </div>
             </div>
 
-            <!-- Default Settings (Subtle) -->
-            <div class="text-center">
-                <p class="text-[10px] text-[#b3b0a6] tracking-wider">
-                    預設：1000股 (一張) · 電子下單 3.5 折
-                    <span id="tax-info" class="ml-1">· 稅率 0.3%</span>
-                </p>
+            <!-- 預設提示 -->
+            <div class="text-[11px] text-[#C1BDB8] mb-6 text-center tracking-wide" id="settings-hint">
+                電子下單 3.5 折 · 稅率 0.3%
+            </div>
+
+            <!-- 分隔線 -->
+            <div class="w-full h-px bg-[#F2EFEA] mb-6"></div>
+
+            <!-- 預估損益結果 -->
+            <div class="text-center mb-8">
+                <div class="text-[13px] text-[#A6A09A] mb-2 tracking-wide">預估損益</div>
+                <div class="font-serif-tc text-[42px] leading-none mb-3" id="display-profit">
+                    <span class="text-[#C1BDB8]">NT$ 0</span>
+                </div>
+                <div class="text-[14px]" id="display-roi">
+                    <span class="text-[#C1BDB8] tracking-wide">報酬率 0.00%</span>
+                </div>
+            </div>
+
+            <!-- 費用明細卡片 -->
+            <div class="w-full bg-[#FCFBFA] border border-[#F2EFEA] rounded-[1.25rem] p-5">
+                <div class="flex justify-between items-center mb-[14px]">
+                    <span class="text-[13px] text-[#8E8780]">買入手續費</span>
+                    <span class="text-[13px] text-[#A6A09A] font-medium" id="display-buy-fee">0</span>
+                </div>
+                <div class="flex justify-between items-center mb-[14px]">
+                    <span class="text-[13px] text-[#8E8780]">賣出手續費</span>
+                    <span class="text-[13px] text-[#A6A09A] font-medium" id="display-sell-fee">0</span>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-[13px] text-[#8E8780]">證券交易稅</span>
+                    <span class="text-[13px] text-[#A6A09A] font-medium" id="display-tax">0</span>
+                </div>
+                <!-- 細分隔線 -->
+                <div class="w-full h-px bg-[#F2EFEA] mb-4"></div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[13px] text-[#756E67]">總成本</span>
+                    <span class="text-[14px] text-[#756E67] font-medium" id="display-cost">0</span>
+                </div>
             </div>
         </div>
-
-        <!-- Divider -->
-        <hr class="border-[#efece5] my-8">
-
-        <!-- Result Section -->
-        <div class="text-center space-y-2">
-            <p class="text-xs text-[#9c9890] tracking-widest mb-1">預估損益</p>
-            <div id="netProfit" class="text-4xl font-serif font-medium text-[#ccc] transition-colors duration-500">
-                NT$ 0
-            </div>
-            <div id="roi" class="text-sm text-[#9c9890] mt-1 h-5">
-                報酬率 0.00%
-            </div>
-        </div>
-
-        <!-- Details -->
-        <div class="mt-8 bg-[#fbfaf8] rounded p-4 text-xs text-[#8c8678] space-y-2 border border-[#f0ede6]">
-            <div class="flex justify-between">
-                <span>買入手續費</span>
-                <span id="buyFee">0</span>
-            </div>
-            <div class="flex justify-between">
-                <span>賣出手續費</span>
-                <span id="sellFee">0</span>
-            </div>
-            <div class="flex justify-between">
-                <span>證券交易稅</span>
-                <span id="tax">0</span>
-            </div>
-            <div class="flex justify-between pt-2 border-t border-[#eee]">
-                <span>總成本</span>
-                <span id="totalCost">0</span>
-            </div>
-        </div>
-
     </div>
 
     <script>
-        // Configuration
-        const SHARES = 1000; // 1 Sheet
-        const FEE_RATE = 0.001425;
-        const DISCOUNT = 0.35; // 3.5 Zhe
-        const MIN_FEE = 20;
+        // 常數設定 (台股標準)
+        const SHARES_PER_LOT = 1000;   // 一張 1000 股
+        const FEE_RATE = 0.001425;     // 公定手續費率 0.1425%
+        const FEE_DISCOUNT = 0.35;     // 假設券商折扣 3.5 折
+        const TAX_RATE_REGULAR = 0.003;// 一般交易稅率 0.3%
+        const TAX_RATE_DAYTRADE = 0.0015; // 當沖交易稅率 0.15%
+
+        // 狀態變數
+        let isDayTrade = false;
+
+        // DOM 元素取得
+        const inputLots = document.getElementById('input-lots');
+        const inputBuy = document.getElementById('input-buy');
+        const inputSell = document.getElementById('input-sell');
+        const btnRegular = document.getElementById('btn-regular');
+        const btnDaytrade = document.getElementById('btn-daytrade');
+        const toggleBg = document.getElementById('toggle-bg');
+        const settingsHint = document.getElementById('settings-hint');
         
-        let isDayTrading = false;
+        const displayProfit = document.getElementById('display-profit');
+        const displayRoi = document.getElementById('display-roi');
+        const displayBuyFee = document.getElementById('display-buy-fee');
+        const displaySellFee = document.getElementById('display-sell-fee');
+        const displayTax = document.getElementById('display-tax');
+        const displayCost = document.getElementById('display-cost');
 
-        function setMode(mode) {
-            isDayTrading = (mode === 'daytrade');
+        // 格式化數字 (加入千分位與符號)
+        function formatNumber(num) {
+            return num.toLocaleString('en-US');
+        }
+
+        // 計算核心邏輯
+        function calculate() {
+            const lots = parseFloat(inputLots.value) || 0;
+            const buyPrice = parseFloat(inputBuy.value) || 0;
+            const sellPrice = parseFloat(inputSell.value) || 0;
             
-            const btnNormal = document.getElementById('btn-normal');
-            const btnDayTrade = document.getElementById('btn-daytrade');
-            const taxInfo = document.getElementById('tax-info');
+            const totalShares = lots * SHARES_PER_LOT;
 
-            if (isDayTrading) {
-                btnNormal.className = "w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 text-[#9c9890]";
-                btnDayTrade.className = "w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 shadow-sm bg-white text-[#5e5b52]";
-                taxInfo.textContent = "· 稅率 0.15%";
-            } else {
-                btnNormal.className = "w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 shadow-sm bg-white text-[#5e5b52]";
-                btnDayTrade.className = "w-1/2 text-center py-2 rounded-full text-sm transition-all duration-300 text-[#9c9890]";
-                taxInfo.textContent = "· 稅率 0.3%";
+            // 1. 計算買入總值與手續費
+            const buyValue = buyPrice * totalShares;
+            let buyFee = Math.floor(buyValue * FEE_RATE * FEE_DISCOUNT);
+            if (buyValue > 0 && buyFee < 20) buyFee = 20; // 最低手續費 20 元限制
+            if (buyValue === 0) buyFee = 0;
+
+            // 2. 計算賣出總值與手續費
+            const sellValue = sellPrice * totalShares;
+            let sellFee = Math.floor(sellValue * FEE_RATE * FEE_DISCOUNT);
+            if (sellValue > 0 && sellFee < 20) sellFee = 20;
+            if (sellValue === 0) sellFee = 0;
+
+            // 3. 計算證交稅 (賣出時收取，無條件捨去)
+            const currentTaxRate = isDayTrade ? TAX_RATE_DAYTRADE : TAX_RATE_REGULAR;
+            const tax = Math.floor(sellValue * currentTaxRate);
+
+            // 4. 計算總成本與損益
+            const totalCost = buyValue + buyFee;
+            const netIncome = sellValue - sellFee - tax; // 實際回收金額
+            
+            let profit = 0;
+            if (buyValue > 0 || sellValue > 0) {
+                profit = netIncome - totalCost; // 淨損益
             }
+            
+            // 5. 計算報酬率 (避免除以零)
+            let roi = 0;
+            if (totalCost > 0) {
+                roi = (profit / totalCost) * 100;
+            }
+
+            updateUI(buyFee, sellFee, tax, totalCost, profit, roi);
+        }
+
+        // 更新畫面 UI
+        function updateUI(buyFee, sellFee, tax, totalCost, profit, roi) {
+            // 更新明細
+            displayBuyFee.textContent = formatNumber(buyFee);
+            displaySellFee.textContent = formatNumber(sellFee);
+            displayTax.textContent = formatNumber(tax);
+            displayCost.textContent = formatNumber(totalCost);
+
+            // 設定顏色 (正數為磚紅色，負數為冷綠色，0為灰色)
+            let colorClass = 'text-[#C1BDB8]'; // Default gray
+            let sign = '';
+            
+            if (profit > 0) {
+                colorClass = 'text-[#AB7371]'; // 正數磚紅色
+                sign = '+';
+            } else if (profit < 0) {
+                colorClass = 'text-[#638C7A]'; // 負數冷綠色
+                sign = ''; // 負號會自動帶出
+            }
+
+            // 若損益為 0 (或未輸入)，不顯示正負號，顯示灰色
+            if (profit === 0) {
+                sign = '';
+                colorClass = 'text-[#C1BDB8]';
+            }
+
+            // 更新損益大字
+            displayProfit.innerHTML = `<span class="${colorClass}">${sign}NT$ ${formatNumber(profit)}</span>`;
+            
+            // 更新報酬率
+            let roiFormatted = roi.toFixed(2);
+            if (roi > 0) {
+                roiFormatted = `+${roiFormatted}`;
+            }
+            displayRoi.innerHTML = `<span class="${colorClass} tracking-wide">報酬率 ${roiFormatted}%</span>`;
+        }
+
+        // 切換交易模式 (一般 / 當沖)
+        function setTradeMode(mode) {
+            isDayTrade = (mode === 'daytrade');
+            
+            if (isDayTrade) {
+                // UI 切換至當沖
+                toggleBg.style.transform = 'translateX(100%)';
+                btnDaytrade.classList.replace('text-[#AEA8A3]', 'text-[#6B635A]');
+                btnRegular.classList.replace('text-[#6B635A]', 'text-[#AEA8A3]');
+                settingsHint.textContent = '電子下單 3.5 折 · 稅率 0.15%';
+            } else {
+                // UI 切換至一般
+                toggleBg.style.transform = 'translateX(0)';
+                btnRegular.classList.replace('text-[#AEA8A3]', 'text-[#6B635A]');
+                btnDaytrade.classList.replace('text-[#6B635A]', 'text-[#AEA8A3]');
+                settingsHint.textContent = '電子下單 3.5 折 · 稅率 0.3%';
+            }
+            
+            // 重新計算
             calculate();
         }
 
-        function calculateFee(price) {
-            if (!price) return 0;
-            // Formula: Price * Shares * Rate * Discount
-            // Round down to integer
-            let rawFee = Math.floor(price * SHARES * FEE_RATE * DISCOUNT);
-            // Minimum fee check: 20 TWD
-            return Math.max(MIN_FEE, rawFee);
-        }
+        // 綁定事件監聽器 (當輸入框內容改變時自動計算)
+        inputLots.addEventListener('input', calculate);
+        inputBuy.addEventListener('input', calculate);
+        inputSell.addEventListener('input', calculate);
 
-        function calculate() {
-            const buyPrice = parseFloat(document.getElementById('buyPrice').value);
-            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
-            
-            const netProfitEl = document.getElementById('netProfit');
-            const roiEl = document.getElementById('roi');
-            const buyFeeEl = document.getElementById('buyFee');
-            const sellFeeEl = document.getElementById('sellFee');
-            const taxEl = document.getElementById('tax');
-            const totalCostEl = document.getElementById('totalCost');
-
-            if (!buyPrice || !sellPrice) {
-                // Reset to neutral state if inputs are incomplete
-                netProfitEl.textContent = "NT$ 0";
-                netProfitEl.className = "text-4xl font-serif font-medium text-[#ccc]";
-                roiEl.textContent = "報酬率 0.00%";
-                buyFeeEl.textContent = "0";
-                sellFeeEl.textContent = "0";
-                taxEl.textContent = "0";
-                totalCostEl.textContent = "0";
-                return;
-            }
-
-            // 1. Calculate Fees
-            const buyFee = calculateFee(buyPrice);
-            const sellFee = calculateFee(sellPrice);
-
-            // 2. Calculate Tax
-            // Non-day-trade: 0.003, Day-trade: 0.0015
-            const taxRate = isDayTrading ? 0.0015 : 0.003;
-            // Tax is based on Sell Amount, floor integer
-            const tax = Math.floor(sellPrice * SHARES * taxRate);
-
-            // 3. Totals
-            const buyAmount = buyPrice * SHARES;
-            const sellAmount = sellPrice * SHARES;
-
-            const totalCost = buyAmount + buyFee; // Cost = Stock cost + Buy Fee
-            // Note: Some define cost differently for ROI, but cash-out calculation:
-            // Net Profit = (Sell Amount - Sell Fee - Tax) - (Buy Amount + Buy Fee)
-            
-            const totalIncome = sellAmount - sellFee - tax;
-            const netProfit = totalIncome - totalCost;
-
-            // 4. ROI
-            const roi = (netProfit / totalCost) * 100;
-
-            // Update UI
-            buyFeeEl.textContent = buyFee.toLocaleString();
-            sellFeeEl.textContent = sellFee.toLocaleString();
-            taxEl.textContent = tax.toLocaleString();
-            totalCostEl.textContent = totalCost.toLocaleString();
-
-            const prefix = netProfit > 0 ? "+" : "";
-            netProfitEl.textContent = `${prefix}NT$ ${netProfit.toLocaleString()}`;
-            roiEl.textContent = `報酬率 ${prefix}${roi.toFixed(2)}%`;
-
-            // Color Coding (Taiwan Style: Red is Up/Profit, Green is Down/Loss)
-            // Using muted Wenqing colors
-            if (netProfit > 0) {
-                netProfitEl.className = "text-4xl font-serif font-medium result-positive";
-                roiEl.className = "text-sm mt-1 h-5 result-positive";
-            } else if (netProfit < 0) {
-                netProfitEl.className = "text-4xl font-serif font-medium result-negative";
-                roiEl.className = "text-sm mt-1 h-5 result-negative";
-            } else {
-                netProfitEl.className = "text-4xl font-serif font-medium text-[#5e5b52]";
-                roiEl.className = "text-sm mt-1 h-5 text-[#9c9890]";
-            }
-        }
+        // 初始化計算
+        calculate();
     </script>
 </body>
 </html>
-
